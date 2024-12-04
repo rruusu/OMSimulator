@@ -404,6 +404,12 @@ oms::KinsolSolver* oms::KinsolSolver::NewKinsolSolver(const int algLoopNum, cons
   return kinsolSolver;
 }
 
+static std::string to_string(double value) {
+  std::ostringstream s;
+  s << value;
+  return s.str();
+}
+
 /**
  * @brief Solve algebraic system with KINSOL
  *
@@ -427,6 +433,11 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
   double fNormValue;
 
   double tol = tolerance != 0.0 ? tolerance : fnormtol;
+
+  if (Flags::DumpAlgLoops())
+    logInfo("Solving system " + std::to_string(kinsolUserData->algLoopNumber + 1) + " to within tolerance " + to_string(tol));
+  else
+    logDebug("Solving system " + std::to_string(kinsolUserData->algLoopNumber + 1) + " to within tolerance " + to_string(tol));
 
   if (SCC.connections.size() != size)
   {
@@ -480,8 +491,8 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
   KINGetFuncNorm(kinsolMemory, &fNormValue);
   if ( fNormValue > tol )
   {
-    logWarning("Solution of algebraic loop " + std::to_string(((KINSOL_USER_DATA *)user_data)->algLoopNumber) + "not within precission given by fnormtol: " + std::to_string(fnormtol));
-    logDebug("2-norm of residual of solution: " + std::to_string(fNormValue));
+    logWarning("Solution of algebraic loop " + std::to_string(((KINSOL_USER_DATA *)user_data)->algLoopNumber + 1) + " not within precission given by fnormtol: " + to_string(tol));
+    logDebug("2-norm of residual of solution: " + to_string(fNormValue));
     return oms_status_warning;
   }
 
@@ -689,7 +700,7 @@ oms_status_enu_t oms::AlgLoop::fixPointIteration(System& syst, DirectedGraph& gr
   {
     return logError("max. number of iterations (" + std::to_string(maxIterations) + ") exceeded at time = " + std::to_string(syst.getTime()));
   }
-  logDebug("CompositeModel::solveAlgLoop: maxRes: " + std::to_string(maxRes) + ", iterations: " + std::to_string(it) + " at time = " + std::to_string(syst.getTime()));
+  logDebug("CompositeModel::solveAlgLoop: maxRes: " + to_string(maxRes) + ", iterations: " + std::to_string(it) + " at time = " + std::to_string(syst.getTime()));
   return oms_status_ok;
 }
 
