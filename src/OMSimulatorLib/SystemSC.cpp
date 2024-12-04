@@ -655,6 +655,8 @@ oms_status_enu_t oms::SystemSC::doStepEuler(double stopTime)
 
     step_size_adjustment *= 0.5; // reduce the step size in each iteration
 
+    // TODO: Check callEventUpdate values!
+
     // a. Evaluate derivatives for each FMU
     // set time
     for (const auto& component : getComponents())
@@ -895,7 +897,8 @@ oms_status_enu_t oms::SystemSC::doStepCVODE(double stopTime)
     updateInputs(eventGraph);
     if (isTopLevelSystem())
       getModel().emit(time, false);
-    
+
+    bool immediateEvent = false;
     for (size_t i = 0; i < fmus.size(); ++i)
     {
       if (nStates[i] > 0)
@@ -906,9 +909,11 @@ oms_status_enu_t oms::SystemSC::doStepCVODE(double stopTime)
       
       fmistatus = fmi2_completedIntegratorStep(fmus[i]->getFMU(), fmi2True, &callEventUpdate[i], &terminateSimulation[i]);
       if (fmi2OK != fmistatus) return logError_FMUCall("fmi2_completedIntegratorStep", fmus[i]);
+
+      immediateEvent = immediateEvent || callEventUpdate[i];
     }
 
-    if (flag == CV_ROOT_RETURN || tnext_is_event && time == tnext)
+    if (flag == CV_ROOT_RETURN || tnext_is_event && time == tnext || immediateEvent)
     {
       logDebug("event found!!! " + std::to_string(time));
 
