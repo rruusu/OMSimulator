@@ -63,7 +63,7 @@ inline bool checkFlag(int flag, std::string functionName)
     logError("SUNDIALS_ERROR: " + functionName + " failed with flag = " + std::to_string(flag));
     return false;
   }
-  logDebug("SUNDIALS_INFO: " + functionName + " failed with flag = " + std::to_string(flag));
+  logDebug("SUNDIALS_INFO: " + functionName + " succeeded with flag = " + std::to_string(flag));
   return true;
 }
 
@@ -434,11 +434,6 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
 
   double tol = tolerance != 0.0 ? tolerance : fnormtol;
 
-  if (Flags::DumpAlgLoops())
-    logInfo("Solving system " + std::to_string(kinsolUserData->algLoopNumber + 1) + " to within tolerance " + to_string(tol));
-  else
-    logDebug("Solving system " + std::to_string(kinsolUserData->algLoopNumber + 1) + " to within tolerance " + to_string(tol));
-
   if (SCC.connections.size() != size)
   {
     logError("The size of the loop changed! This shouldn't be possible...");
@@ -468,6 +463,11 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
   else
     return oms_status_ok;
 
+  if (Flags::DumpAlgLoops())
+    logInfo("Solving system " + std::to_string(kinsolUserData->algLoopNumber + 1) + " to within tolerance " + to_string(tol));
+  else
+    logDebug("Solving system " + std::to_string(kinsolUserData->algLoopNumber + 1) + " to within tolerance " + to_string(tol));
+
   if (!firstSolution) {
     // Predict a better initial guess
     SUNLinSolSolve(linSol, J, y, fTmp, tol);
@@ -494,6 +494,10 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
     logWarning("Solution of algebraic loop " + std::to_string(((KINSOL_USER_DATA *)user_data)->algLoopNumber + 1) + " not within precission given by fnormtol: " + to_string(tol));
     logDebug("2-norm of residual of solution: " + to_string(fNormValue));
     return oms_status_warning;
+  }
+  else if (Flags::DumpAlgLoops())
+  {
+    logInfo("2-norm of residual of solution: " + to_string(fNormValue) + " <= " + to_string(tol));
   }
 
   if (flag == KIN_SUCCESS) {
