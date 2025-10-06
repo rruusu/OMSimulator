@@ -425,7 +425,7 @@ oms_status_enu_t oms::SystemSC::initialize()
 
     // Call CVodeSetLinearSolver to set the dense linear solver */
     flag = CVodeSetLinearSolver(solverData.cvode.mem, solverData.cvode.linSol, solverData.cvode.J);
-    if (flag < 0) logError("SUNDIALS_ERROR: CVDense() failed with flag = " + std::to_string(flag));
+    if (flag < 0) logError("SUNDIALS_ERROR: CVodeSetLinearSolver() failed with flag = " + std::to_string(flag));
 
     logInfo("maximum step size for '" + std::string(getFullCref()) + "': " + std::to_string(maximumStepSize));
     flag = CVodeSetMaxStep(solverData.cvode.mem, maximumStepSize);
@@ -870,7 +870,7 @@ oms_status_enu_t oms::SystemSC::doStepCVODE(double stopTime)
       // interpolate result to tnext (this shouldn't take any further steps)
       flag = CVode(solverData.cvode.mem, tnext, solverData.cvode.y, &cvode_time, CV_NORMAL);
       if (flag < 0)
-        return logError("SUNDIALS_ERROR: CVode() failed with flag = " + std::to_string(flag));
+        return logError("SUNDIALS_ERROR: CVode() interpolation failed with flag = " + std::to_string(flag));
     }
 
     time = cvode_time;
