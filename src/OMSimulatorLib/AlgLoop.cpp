@@ -453,7 +453,7 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
 
   /* Apply relative tolerance to magnitude of initial guess */
   fNormValue = std::sqrt(N_VDotProd_Serial(initialGuess, initialGuess));
-  tol = std::max(tol, fNormValue * freltol * tolerance / fnormtol);
+  tol = 1024.0 * DBL_EPSILON * fNormValue; // std::max(tol, fNormValue * freltol * tolerance / fnormtol);
 
   /* Check residual for initial guess */
   nlsKinsolResiduals(initialGuess, fTmp, user_data);
@@ -478,6 +478,7 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
   // TODO: Add scaling that is not only constant ones
 
   KINSetFuncNormTol(kinsolMemory, tol);
+  KINSetScaledStepTol(kinsolMemory, 8.0 * tol);
 
   /* Solve algebraic loop with KINSol() */
   flag = KINSol(kinsolMemory,   /* KINSol memory block */
