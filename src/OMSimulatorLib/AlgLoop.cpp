@@ -63,7 +63,7 @@ inline bool checkFlag(int flag, std::string functionName)
     logError("SUNDIALS_ERROR: " + functionName + " failed with flag = " + std::to_string(flag));
     return false;
   }
-  logDebug("SUNDIALS_INFO: " + functionName + " failed with flag = " + std::to_string(flag));
+  logDebug("SUNDIALS_INFO: " + functionName + " succeeded with flag = " + std::to_string(flag));
   return true;
 }
 
@@ -404,6 +404,12 @@ oms::KinsolSolver* oms::KinsolSolver::NewKinsolSolver(const int algLoopNum, cons
   return kinsolSolver;
 }
 
+static std::string to_string(double value) {
+  std::ostringstream s;
+  s << value;
+  return s.str();
+}
+
 /**
  * @brief Solve algebraic system with KINSOL
  *
@@ -457,6 +463,11 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
   else
     return oms_status_ok;
 
+  if (Flags::DumpAlgLoops())
+    logInfo("Solving system " + std::to_string(kinsolUserData->algLoopNumber + 1) + " to within tolerance " + to_string(tol));
+  else
+    logDebug("Solving system " + std::to_string(kinsolUserData->algLoopNumber + 1) + " to within tolerance " + to_string(tol));
+  
   if (!firstSolution) {
     // Predict a better initial guess
     SUNLinSolSolve(linSol, J, y, fTmp, tol);
@@ -480,9 +491,13 @@ oms_status_enu_t oms::KinsolSolver::kinsolSolve(System& syst, DirectedGraph& gra
   KINGetFuncNorm(kinsolMemory, &fNormValue);
   if ( fNormValue > tol )
   {
-    logWarning("Solution of algebraic loop " + std::to_string(((KINSOL_USER_DATA *)user_data)->algLoopNumber) + "not within precission given by fnormtol: " + std::to_string(fnormtol));
-    logDebug("2-norm of residual of solution: " + std::to_string(fNormValue));
+    logWarning("Solution of algebraic loop " + std::to_string(((KINSOL_USER_DATA *)user_data)->algLoopNumber + 1) + " not within precission given by fnormtol: " + to_string(tol));
+    logDebug("2-norm of residual of solution: " + to_string(fNormValue));
     return oms_status_warning;
+  }
+  else if (Flags::DumpAlgLoops())
+  {
+    logInfo("2-norm of residual of solution: " + to_string(fNormValue) + " <= " + to_string(tol));
   }
 
   if (flag == KIN_SUCCESS) {
@@ -689,7 +704,7 @@ oms_status_enu_t oms::AlgLoop::fixPointIteration(System& syst, DirectedGraph& gr
   {
     return logError("max. number of iterations (" + std::to_string(maxIterations) + ") exceeded at time = " + std::to_string(syst.getTime()));
   }
-  logDebug("CompositeModel::solveAlgLoop: maxRes: " + std::to_string(maxRes) + ", iterations: " + std::to_string(it) + " at time = " + std::to_string(syst.getTime()));
+  logDebug("CompositeModel::solveAlgLoop: maxRes: " + to_string(maxRes) + ", iterations: " + std::to_string(it) + " at time = " + std::to_string(syst.getTime()));
   return oms_status_ok;
 }
 
