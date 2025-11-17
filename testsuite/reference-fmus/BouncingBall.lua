@@ -44,7 +44,7 @@ oms_addSubModel("model.root.BouncingBall", "../../resources/BouncingBall.fmu")
 
 oms_setResultFile("model", "BouncingBall-me.mat")
 oms_setStopTime("model", 3.0)
-oms_setTolerance("model.root", 1e-5, 1e-5)
+oms_setTolerance("model.root", 1e-7, 1e-7)
 
 oms_instantiate("model")
 oms_initialize("model")
@@ -52,13 +52,13 @@ oms_simulate("model")
 oms_terminate("model")
 oms_delete("model")
 
-if 1 == oms_compareSimulationResults("../../references/BouncingBall-me.mat", "BouncingBall-me.mat", "model.root.BouncingBall.h", 1e-4, 1e-4) then
+if 1 == oms_compareSimulationResults("../../references/BouncingBall-me.mat", "BouncingBall-me.mat", "model.root.BouncingBall.h", 1e-6, 1e-6) then
   print("signal h is equal")
 else
   print("signal h is not equal")
 end
 
-if 1 == oms_compareSimulationResults("../../references/BouncingBall-me.mat", "BouncingBall-me.mat", "model.root.BouncingBall.v", 1e-4, 1e-4) then
+if 1 == oms_compareSimulationResults("../../references/BouncingBall-me.mat", "BouncingBall-me.mat", "model.root.BouncingBall.v", 1e-6, 1e-6) then
   print("signal v is equal")
 else
   print("signal v is not equal")
